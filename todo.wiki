@@ -12,8 +12,13 @@
             * [X] score property
     * [X] implement get_neighbors
         * [X] test 
+    * [O] implement check_for_triangle
+        * [O] test
+            * [X] all zeros
+            * [X] 012, 123, 345
+            * [X] 024, 135
+            * [ ] 015, 045, 245
     * [ ] implement minimax
-    * [ ] implement check_for_triangle
     
     # [ ] Create a case (board/config) to test the minimax algo
     

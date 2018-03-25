@@ -77,11 +77,19 @@ class HexNode:
                 2 -- if a dashed triangle exists.
                 0 -- otherwise
         '''
-        result = 0
+        for i in range(0, 4):
+            for j in range(i + 1, 5):
+                for k in range(j + 1, 6):
+                    if self.board[i][j] == self.board[j][k] == self.board[i][k] != 0:
+                        print("TEST: Triangle found: {} {} {}".format(i,j,k))
+                        return self.board[i][j]
+                #end-for-k
+            #end-for-j
+        #end-for-i
 
-
-
-        return result
+        # No triangle found
+        print("TEST: no triangle found")
+        return 0
     #end-h_score
         
     # Generates the states that correspond to the possbile moves
@@ -251,22 +259,23 @@ def test():
     # starter = int(input("Who should start the game? Enter player number: (1 for AI, 2 for Player)"))
     print("--------Starting Test Driver method")
     board = [
+
         [0,0,0,0,0,0],
         [0,0,0,0,0,0],
+        [0,0,0,0,1,1],
         [0,0,0,0,0,0],
-        [0,0,0,0,0,0],
-        [0,0,0,0,0,0],
+        [0,0,0,0,0,1],
         [0,0,0,0,0,0]
+
         ]
 
 
-    print("------------------Testing get_neighbors function")
+    print("------------------Testing check_for_triangle")
     test_node = HexNode(board)
     print(test_node)
-    for i,n in enumerate( test_node.get_neighbors(1) ):
-        print("next neighbor")
-        print(n)
-        print(i)
+
+    has_tri = test_node.check_for_triangle()
+
 
 
     # test_node.make_move(1,0,1)
