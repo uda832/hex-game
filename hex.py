@@ -33,7 +33,7 @@ class HexNode:
 
     # Make HexNode hashable -- so it could used to check for existence in open/closed sets
     def __hash__(self):
-        return hash(tuple(tuple(row) for row in board))
+        return hash(tuple(tuple(row) for row in self.board))
 
     # Make the node object printable
     def __str__(self):
@@ -46,11 +46,11 @@ class HexNode:
 
 
     @property
-    def minimax_score(self):
+    def score(self):
         return self._score
 
-    @minimax_score.setter
-    def minimax_score(self, score):
+    @score.setter
+    def score(self, score):
         self._score = score
 
     
@@ -61,8 +61,8 @@ class HexNode:
         '''
         # Check if move is valid
         try:
-            if a != b and self.board[a][b] == 0 and self.board[b][a] == 0:
-                self.board[a][b] = self.board[b][a] = player
+            if a != b and self.board[a][b] == 0:
+                self.board[a][b] = player
             else:
                 raise InvalidMove("Cannot add an edge between nodes {} and {}".format(a,b))
         except:
@@ -90,7 +90,7 @@ class HexNode:
             for j in range(i + 1, 5):
                 for k in range(j + 1, 6):
                     if self.board[i][j] == self.board[j][k] == self.board[i][k] != 0:
-                        # print("TEST: Triangle found: {} {} {}".format(i,j,k))
+                        print("TEST: Triangle found: {} {} {}".format(i,j,k))
                         tri_type = self.board[i][j]
                         return (tri_type, (i, j, k))
                 #end-for-k
@@ -98,7 +98,7 @@ class HexNode:
         #end-for-i
 
         # No triangle found
-        # print("TEST: no triangle found")
+        print("TEST: no triangle found")
         return (0, None)
     #end-h_score
         
@@ -106,7 +106,7 @@ class HexNode:
     def get_neighbors(self, turn):
         '''
             Note: this function creates new HexNodes (Hex states) that
-                  that result from each possible move for the current player
+                  that result from each possible move for the specified player
         '''
         out = []
 
@@ -178,9 +178,9 @@ class HexGame:
             else:
                 neighbors = current_node.get_neighbors(self._turn)
                 for node in neighbors:
-                    node.minimax_score = minimax(node)
+                    node.score = alpha_beta(node, turn=self._turn, alpha=-inf, beta=inf)
 
-                current_node = max(neighbors, key=lambda elem: elem.minimax_score)
+                current_node = max(neighbors, key=lambda elem: elem.score)
 
             # Check if the board has a triangle
             res,tri_loc = current_node.check_for_triangle() 
@@ -241,7 +241,8 @@ class HexGame:
 
 #end-class 
 
-def minimax(node, turn=1):
+
+def alpha_beta(node, turn=1, alpha=-inf, beta=inf, depth=0):
     '''
         Evaulates the current HexNode's score for the current player (which is specified by the turn parameter)
             turn=1 -- maximize
@@ -250,7 +251,7 @@ def minimax(node, turn=1):
             Note: by default, calculates the score for turn=1 (i.e. max)
     '''
     
-    print("TEST-minimax: current node")
+    print("------------------------alpha_beta with depth={}".format(depth))
     print(node)
 
 
@@ -258,27 +259,31 @@ def minimax(node, turn=1):
     has_triangle, tri_loc = node.check_for_triangle()
 
     '''
-        Return 100 if a solid triangle exists
-        Return -100 if a dashed triangle exists
+        Return 1 if a solid triangle exists
+        Return -1 if a dashed triangle exists
     '''
     if has_triangle:
         print("TEST-TERMINAL-REACHED: current node")
         print(tri_loc)
         # input("Press enter to continue")
-        return 100 if has_triangle == 1 else -100
+        return -1 if has_triangle == 1 else 1
+
+    # if depth > 15:
+        # return 0
 
     # Max
     if turn == 1:
         best_val = -inf
         neighbors = node.get_neighbors(turn=2)
         for neighbor_node in neighbors:
-            neighbor_node.minimax_score = minimax(neighbor_node, turn=2)
+            neighbor_node.score = alpha_beta(neighbor_node, turn=2, alpha=alpha, beta=beta, depth=depth + 1)
 
-            # Shortcircuit -- skip the next neighbors if a terminal is reached
-            if neighbor_node.minimax_score >= 100:
-                return 100
+            best_val = max(best_val, neighbor_node.score)
+            alpha = max(best_val, alpha)
 
-            best_val = max(best_val, neighbor_node.minimax_score)
+            if beta <= alpha:
+                print("beta cutoff: {} {} at depth {}".format(alpha, beta,depth))
+                break       # Perform Beta cut-off
         return best_val
     
     # Min
@@ -286,18 +291,20 @@ def minimax(node, turn=1):
         best_val = inf
         neighbors = node.get_neighbors(turn=1)
         for neighbor_node in neighbors:
-            neighbor_node.minimax_score = minimax(neighbor_node, turn=1)
+            neighbor_node.score = alpha_beta(neighbor_node, turn=1, alpha=alpha, beta=beta, depth=depth + 1)
 
-            # Shortcircuit -- skip the next neighbors if a terminal is reached
-            if neighbor_node.minimax_score <= -100:
-                return -100
+            best_val = min(best_val, neighbor_node.score)
+            beta = min(best_val, beta)
 
-            best_val = min(best_val, neighbor_node.minimax_score)
+            if beta <= alpha:
+                print("alpha cutoff: {} {} at depth {}".format(alpha, beta,depth))
+                break       # Perorm Alpha cut-off
+
         return best_val
     
     else:
         raise ValueError
-#end-minimax
+#end-alpha_beta
 
         
 def main():
@@ -331,19 +338,28 @@ def test():
         ]
 
     # board = [
-        # [0, 2, 1, 2, 1, 2],
-        # [2, 0, 1, 1, 0, 1],
-        # [1, 1, 0, 2, 0, 0],
-        # [2, 1, 2, 0, 2, 1],
-        # [1, 0, 0, 2, 0, 2],
-        # [2, 1, 0, 1, 2, 0]
+        # [0,0,0,2,1,0],
+        # [0,0,1,1,2,0],
+        # [0,0,0,2,0,2],
+        # [0,0,0,0,1,0],
+        # [0,0,0,0,0,0],
+        # [0,0,0,0,0,0]
+        # ]
 
+    # board = [
+        # [0, 0, 0, 0, 0, 2],
+        # [0, 0, 1, 0, 0, 1],
+        # [0, 0, 0, 0, 0, 0],
+        # [0, 0, 0, 0, 2, 1],
+        # [0, 0, 0, 0, 0, 2],
+        # [0, 0, 0, 0, 0, 0]
         # ]
 
 
-    print("------------------Starting minimax")
+    print("------------------Starting alpha_beta")
     test_node = HexNode(board)
-    minimax(test_node, 1)
+    # test_node.check_for_triangle()
+    alpha_beta(test_node, 1, -inf, inf, 0)
     print(test_node)
 
 
