@@ -16,9 +16,16 @@
 
 
 
-count = 0
-for i in range(0, 4):
-    for j in range(i + 1, 5):
-        for k in range(j + 1, 6):
-            count += 1
-            print("count={} \t {} {} {}".format(count,i,j,k))
+# count = 0
+# for i in range(0, 4):
+    # for j in range(i + 1, 5):
+        # for k in range(j + 1, 6):
+            # count += 1
+            # print("count={} \t {} {} {}".format(count,i,j,k))
+
+
+def test(is_max):
+    print(is_max)
+
+test(is_max=True)
+

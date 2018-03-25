@@ -1,4 +1,5 @@
 import copy
+from math import inf
 
 
 # Exceptions
@@ -46,11 +47,11 @@ class HexNode:
 
     @property
     def minimax_score(self):
-        return _score
+        return self._score
 
     @minimax_score.setter
     def minimax_score(self, score):
-        _score = score
+        self._score = score
 
     
     def make_move(self, a, b, player):
@@ -71,25 +72,34 @@ class HexNode:
 
     def check_for_triangle(self):
         '''
-            Checks if the current node's board contains any solid or dashed triangles
-            Returns:
-                1 -- if a solid triangle exists.
-                2 -- if a dashed triangle exists.
-                0 -- otherwise
+            Checks if the current node's board contains a solid or dashed triangle
+
+            Return type: tuple(int, tuple(int,int,int)) 
+                First element (int) indicates what type of triangle exists.
+                    1 -- if a solid triangle exists.
+                    2 -- if a dashed triangle exists.
+                    0 -- if no triangle exists
+                Second element (tuple(int,int,int)) indicates the location of the triangle
+                    example: (1,2,3) means the triangle is formed between dots 1, 2, and 3
+            Examples:
+                (1, (1,2,3)) -- There exists a solid triangle between dots 1, 2, and 3
+                (2, (2,4,5)) -- There exists a dashed triangle between dots 2, 4, and 5
+
         '''
         for i in range(0, 4):
             for j in range(i + 1, 5):
                 for k in range(j + 1, 6):
                     if self.board[i][j] == self.board[j][k] == self.board[i][k] != 0:
-                        print("TEST: Triangle found: {} {} {}".format(i,j,k))
-                        return self.board[i][j]
+                        # print("TEST: Triangle found: {} {} {}".format(i,j,k))
+                        tri_type = self.board[i][j]
+                        return (tri_type, (i, j, k))
                 #end-for-k
             #end-for-j
         #end-for-i
 
         # No triangle found
-        print("TEST: no triangle found")
-        return 0
+        # print("TEST: no triangle found")
+        return (0, None)
     #end-h_score
         
     # Generates the states that correspond to the possbile moves
@@ -166,14 +176,14 @@ class HexGame:
                 current_node = self.handle_user_move(current_node, self._turn)
             # AI's turn
             else:
-                neightbors = current_node.get_neighbors(self._turn)
-                for node in neightbors:
+                neighbors = current_node.get_neighbors(self._turn)
+                for node in neighbors:
                     node.minimax_score = minimax(node)
 
                 current_node = max(neighbors, key=lambda elem: elem.minimax_score)
 
             # Check if the board has a triangle
-            res = current_node.check_for_triangle() 
+            res,tri_loc = current_node.check_for_triangle() 
 
             # Keep playing
             if res == 0:
@@ -185,6 +195,7 @@ class HexGame:
                     print("Congratulations, you WIN !!!")
                 elif res == 2:
                     print("Computer WINS.")
+                print("{} triangle found at {} {} {}".format("Solid" if res == 1 else "Dashed", tri_loc[0], tri_loc[1], tri_loc[2]))
                 print("Game Over")
                 break
             #end-if-else
@@ -230,18 +241,69 @@ class HexGame:
 
 #end-class 
 
-def minimax(node):
+def minimax(node, turn=1):
     '''
-        Evaulates the current HexNode's score
-    '''
+        Evaulates the current HexNode's score for the current player (which is specified by the turn parameter)
+            turn=1 -- maximize
+            turn=2 -- minimize
 
-    return score
+            Note: by default, calculates the score for turn=1 (i.e. max)
+    '''
+    
+    print("TEST-minimax: current node")
+    print(node)
+
+
+    # Check if the current node has a triangle
+    has_triangle, tri_loc = node.check_for_triangle()
+
+    '''
+        Return 100 if a solid triangle exists
+        Return -100 if a dashed triangle exists
+    '''
+    if has_triangle:
+        print("TEST-TERMINAL-REACHED: current node")
+        print(tri_loc)
+        # input("Press enter to continue")
+        return 100 if has_triangle == 1 else -100
+
+    # Max
+    if turn == 1:
+        best_val = -inf
+        neighbors = node.get_neighbors(turn=2)
+        for neighbor_node in neighbors:
+            neighbor_node.minimax_score = minimax(neighbor_node, turn=2)
+
+            # Shortcircuit -- skip the next neighbors if a terminal is reached
+            if neighbor_node.minimax_score >= 100:
+                return 100
+
+            best_val = max(best_val, neighbor_node.minimax_score)
+        return best_val
+    
+    # Min
+    elif turn == 2:
+        best_val = inf
+        neighbors = node.get_neighbors(turn=1)
+        for neighbor_node in neighbors:
+            neighbor_node.minimax_score = minimax(neighbor_node, turn=1)
+
+            # Shortcircuit -- skip the next neighbors if a terminal is reached
+            if neighbor_node.minimax_score <= -100:
+                return -100
+
+            best_val = min(best_val, neighbor_node.minimax_score)
+        return best_val
+    
+    else:
+        raise ValueError
 #end-minimax
 
         
 def main():
     starter = int(input("Who should start the game? Enter player number: (1 for AI, 2 for Player)"))
 
+    # Initialize board to empty (i.e. no lines)
     board = [[0,0,0,0,0,0] for row in range(6)]
 
     # test_node = HexNode(board)
@@ -258,23 +320,32 @@ def main():
 def test():
     # starter = int(input("Who should start the game? Enter player number: (1 for AI, 2 for Player)"))
     print("--------Starting Test Driver method")
+
     board = [
-
         [0,0,0,0,0,0],
         [0,0,0,0,0,0],
-        [0,0,0,0,1,1],
         [0,0,0,0,0,0],
-        [0,0,0,0,0,1],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
         [0,0,0,0,0,0]
-
         ]
 
+    # board = [
+        # [0, 2, 1, 2, 1, 2],
+        # [2, 0, 1, 1, 0, 1],
+        # [1, 1, 0, 2, 0, 0],
+        # [2, 1, 2, 0, 2, 1],
+        # [1, 0, 0, 2, 0, 2],
+        # [2, 1, 0, 1, 2, 0]
 
-    print("------------------Testing check_for_triangle")
+        # ]
+
+
+    print("------------------Starting minimax")
     test_node = HexNode(board)
+    minimax(test_node, 1)
     print(test_node)
 
-    has_tri = test_node.check_for_triangle()
 
 
 
