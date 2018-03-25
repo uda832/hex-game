@@ -1,3 +1,6 @@
+import copy
+
+
 # Exceptions
 class InvalidMove(Exception):
     pass
@@ -89,13 +92,21 @@ class HexNode:
         '''
         out = []
 
-        # Create a new HexNode for each possible move
-        for i in range(6 - 1):
-            if self.board[i]
+        # Create a new HexNode for each possible move and add to the 'out' list
+        #----------------------------------------------
+        for i in range(0, 6):
+            for j in range(i + 1, 6):
+                if self.board[i][j] != 0:               # Ensure that no line exists between the dots at index i and j
+                    continue
+                
+                temp_board = copy.deepcopy(self.board)  # Create a deep copy of the board
+                new_node = HexNode(temp_board)          # Construct a new HexNode 
+                new_node.make_move(i, j, turn)          # Make the possible move
+                out.append(new_node)                    # Add to the neighbors list
 
-            # IMPLEMENT_ME
-        #end-for
-
+            #end-for-j
+        #end-for-i
+        
         return out
     #end-get_neighbors
 
@@ -225,9 +236,9 @@ def main():
 
     board = [[0,0,0,0,0,0] for row in range(6)]
 
-    # testNode = HexNode(board)
-    # testNode.play_game()
-    # print(testNode)
+    # test_node = HexNode(board)
+    # test_node.play_game()
+    # print(test_node)
 
     # Create the HexGame
     hex_game = HexGame(starter, board)
@@ -239,14 +250,27 @@ def main():
 def test():
     # starter = int(input("Who should start the game? Enter player number: (1 for AI, 2 for Player)"))
     print("--------Starting Test Driver method")
-    board = [[0,0,0,0,0,0] for row in range(6)]
+    board = [
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0]
+        ]
 
-    testNode = HexNode(board)
-    print(testNode)
+
+    print("------------------Testing get_neighbors function")
+    test_node = HexNode(board)
+    print(test_node)
+    for i,n in enumerate( test_node.get_neighbors(1) ):
+        print("next neighbor")
+        print(n)
+        print(i)
 
 
-    testNode.make_move(1,0,1)
-    print(testNode)
+    # test_node.make_move(1,0,1)
+    # print(test_node)
 
     # # Create the HexGame
     # hex_game = HexGame(starter, board)
@@ -256,5 +280,5 @@ def test():
 
 
 # Invoke driver
-main()
-# test()
+# main()
+test()

@@ -10,8 +10,9 @@
             * [X] make_move
                 * [X] validation
             * [X] score property
+    * [X] implement get_neighbors
+        * [X] test 
     * [ ] implement minimax
-    * [ ] implement get_neighbors
     * [ ] implement check_for_triangle
     
     # [ ] Create a case (board/config) to test the minimax algo
