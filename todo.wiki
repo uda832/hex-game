@@ -1,11 +1,18 @@
 # TODO:
-    # [ ] setup git repo
-    # [ ] setup driver
-    # [O] create Node class
+    # [X] setup git repo
+    # [X] setup driver
+    # [X] create Node class
         * [X] determine how to rep each state
             * [X] adj matrix?
         * [X] __str__ function -- what's the best way to print each node
         # [X] determine how to print
-        * [o] methods
+        * [X] methods
             * [X] make_move
-            * [ ] score property -- use minimax
+                * [X] validation
+            * [X] score property
+    * [ ] implement minimax
+    * [ ] implement get_neighbors
+    * [ ] implement check_for_triangle
+    
+    # [ ] Create a case (board/config) to test the minimax algo
+    
