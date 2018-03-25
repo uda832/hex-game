@@ -1,10 +1,11 @@
 # TODO:
     # [ ] setup git repo
     # [ ] setup driver
-    # [ ] create Node class
-        * [ ] determine how to rep each state
-            * [ ] adj matrix?
-            * [ ] adj list?
-        * [ ] determine what methods are needed to play the game
-        * [ ] __str__ function -- what's the best way to print each node
-    # [ ] determine how to print
+    # [O] create Node class
+        * [X] determine how to rep each state
+            * [X] adj matrix?
+        * [X] __str__ function -- what's the best way to print each node
+        # [X] determine how to print
+        * [o] methods
+            * [X] make_move
+            * [ ] score property -- use minimax

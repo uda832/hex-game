@@ -1,11 +1,7 @@
 # Exceptions
 class InvalidMove(Exception):
-    def __init__(self, message, errors):
-        # Call the base class constructor with the parameters it needs
-        super(ValidationError, self).__init__(message)
+    pass
 
-        # Now for your custom code...
-        self.errors = errors
 
 #end-Exceptions
 
@@ -13,11 +9,17 @@ class InvalidMove(Exception):
 class HexNode:
     '''
         Represents a Hexagon game state -- i.e. board configuration
+
+            Note: the 'board' is an adjacency matrix (i.e. 6x6 two-dimensional list of integers)
+                Example: 
+                board[0][1] = 1 indicates that a solid line exists between the dots 0 and 1
+                board[0][1] = 2 indicates that a dashed line exists between the dots 0 and 1
+
     '''
 
     # Constructor -- Takes a board 
     def __init__(self, board):
-        self.board = board    # Note: a board is an adjacency list
+        self.board = board    # Note: a board is an adjacency matrix
         self._score = -999
 
     
@@ -31,15 +33,19 @@ class HexNode:
 
     # Make the node object printable
     def __str__(self):
-        # IMPLEMENT_ME
+        out = ""
+
+        for row in self.board:
+            out += "".join(str(row)) + "\n"
         return out
+    #end-__str__
 
 
     # score
     @property
     def score(self):
-        # IMPLEMENT_ME
-        pass
+        return _score
+        
 
     @score.setter
     def score(self, s):
@@ -52,26 +58,30 @@ class HexNode:
             Returns True if successful
         '''
         # Check if move is valid
-        if a != b and self.board[a][b] == 0 and self.board[b][a] == 0:
-            self.board[a][b] = self.board[b][a] = player
-            return True
-        else:
+        try:
+            if a != b and self.board[a][b] == 0 and self.board[b][a] == 0:
+                self.board[a][b] = player
+                self.board[b][a] = player
+            else:
+                raise InvalidMove("Cannot add an edge between nodes {} and {}".format(a,b))
+        except:
             raise InvalidMove("Cannot add an edge between nodes {} and {}".format(a,b))
+
     #end-make_move
 
 
     #end-h_score
         
 
-    # Generates the states that correspond to the possbile moves
-    def get_neighbors(self):
-        '''
-            Note: this function creates new HexNodes (Hex states) that
-                  that result from each possible move
-        '''
-        # IMPLEMENT_ME
-        # return [] # return the possible states
-    #end-get_neighbors
+    # # Generates the states that correspond to the possbile moves
+    # def get_neighbors(self):
+        # '''
+            # Note: this function creates new HexNodes (Hex states) that
+                  # that result from each possible move
+        # '''
+        # # IMPLEMENT_ME
+        # # return [] # return the possible states
+    # #end-get_neighbors
 
 #end-class HexNode
 
@@ -80,69 +90,39 @@ class HexGame:
     '''
         Implements the HexGame
     '''
-    def __init__(self, starter):
-        self.start = startHexNode
-        self.start.g_score = 0
-        self.goal = goalHexNode
-        HexNode.GOAL_board = goalHexNode.board           # Set the static variable GOAL_board
+    def __init__(self, starter, board=None):
+        '''
+            Note: the 'board' is an adjacency matrix (i.e. 6x6 two-dimensional list of integers)
+                Example: 
+                board[0][1] = 1 indicates that a solid line exists between the dots 0 and 1
+                board[0][1] = 2 indicates that a dashed line exists between the dots 0 and 1
+                board[0][1] = 0 indicates there's no line between the dots 0 and 1
 
-    def play_game(self, starter, board=None):
+        '''
+        self._maximizer = starter
+        self._minimizer = 2 if starter == 1 else 1
+
+        # Set board to empty if it was not passed
+        root_board = board if board else [[0,0,0,0,0,0] for row in range(6)]
+
+        self.root = HexNode(root_board)
+
+
+    def play_game(self):
         '''
             Starts the Hexagon game.
 
                 Note: takes an optional parameter 'board' to start the game
         '''
+        print("Starting game:\n")
 
-        if board is None:
-
-
+        
+        print(self.root)
     #end-play_game
 
 
-    def a_star(self):
-        openList = []
-        closedList = []
-        parents = {}
 
-        openList.append(self.start)             # Insert the start node into the Open list
-
-        # Until openList becomes empty
-        while openList:
-            openList.sort(reverse=True, key=lambda x: x.f_score) # sort the openList to emulate a min-heap. Reverse the order so the .pop() can be used for convenience
-            curHexNode = openList.pop()
-            closedList.append(curHexNode)
-
-            # Goal Found -- return the path
-            if curHexNode == self.goal:
-                return curHexNode.f_score
-                # return buildPath(curHexNode)       # IMPLEMENT_ME
-
-            # Iterate over neighbors of the current node
-            for neighbor in curHexNode.get_neighbors():
-                # Skip if already visited
-                if neighbor in closedList:
-                    continue
-
-                if neighbor not in openList:
-                    # Add to openList if discovered for the first time
-                    openList.append(neighbor)
-                else:
-                    neighborIndex = openList.index(neighbor)
-
-                    # If the current path cost is cheaper than the one found last time
-                    if neighbor.g_score < openList[neighborIndex].g_score:
-                        openList[neighborIndex].g_score = neighbor.g_score
-                        parents[neighbor] = curHexNode
-
-            #end-for
-        #end-while
-
-        print("Error: Failed to find solution")
-        return -1
-    #end-a_star
-
-
-#end-class PuzzleSolvetempboard
+#end-class 
 
 def minimax(HexNode):
     ''' 
@@ -151,20 +131,41 @@ def minimax(HexNode):
     out = 0
 
     return out
+#end-minimax
         
 def main():
     starter = int(input("Who should start the game? Enter player number: (1 for AI, 2 for Player)"))
 
-    board = [[]]
+    board = [[0,0,0,0,0,0] for row in range(6)]
 
-    # Create the HexGame
-    hex_game = HexGame(starter, board)
-    hex_game.play_game()
+    testNode = HexNode(board)
+    print(testNode)
+
+    # # Create the HexGame
+    # hex_game = HexGame(starter, board)
+    # hex_game.play_game()
 
 #end-main
 
 
+def test():
+    # starter = int(input("Who should start the game? Enter player number: (1 for AI, 2 for Player)"))
+    print("--------Starting Test Driver method")
+    board = [[0,0,0,0,0,0] for row in range(6)]
+
+    testNode = HexNode(board)
+    print(testNode)
 
 
-# Invoke driver
-main()
+    testNode.make_move(1,0,1)
+    print(testNode)
+
+    # # Create the HexGame
+    # hex_game = HexGame(starter, board)
+    # hex_game.play_game()
+
+#end-main
+
+
+# Invoke test driver
+test()
