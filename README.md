@@ -1,7 +1,7 @@
 # Hex Game
-Author: Oyun-Undrakh Yeruultsengel
-Hex Game
-03/25/2018
+- Author: Oyun-Undrakh Yeruultsengel
+- Hex Game
+- 03/25/2018
 
 ## To run:
 - Run using python3
