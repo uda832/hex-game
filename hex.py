@@ -1,4 +1,9 @@
+# Author: Oyun-Undrakh Yeruultsengel
+# Hex Game -- Interactive game of Hexagon. AI implemented using Alpha-Beta pruning
+# 03/25/2018
+
 import copy
+import random
 from math import inf
 
 
@@ -90,7 +95,7 @@ class HexNode:
             for j in range(i + 1, 5):
                 for k in range(j + 1, 6):
                     if self.board[i][j] == self.board[j][k] == self.board[i][k] != 0:
-                        print("TEST: Triangle found: {} {} {}".format(i,j,k))
+                        # print("TEST: Triangle found: {} {} {}".format(i,j,k))
                         tri_type = self.board[i][j]
                         return (tri_type, (i, j, k))
                 #end-for-k
@@ -98,7 +103,7 @@ class HexNode:
         #end-for-i
 
         # No triangle found
-        print("TEST: no triangle found")
+        # print("TEST: no triangle found")
         return (0, None)
     #end-h_score
         
@@ -144,6 +149,7 @@ class HexGame:
                 board[0][1] = 0 indicates there's no line between the dots 0 and 1
 
         '''
+        self._starter = starter
         self._turn = starter
         self._maximizer = starter
         self._minimizer = 2 if starter == 1 else 1
@@ -159,6 +165,7 @@ class HexGame:
         '''
             Starts the Hexagon game.
                 Changes turns between the AI and the user
+                Handles user's input/move and makes the AI's move by selecting the best move by using Alpha-Beta Pruning search.
                 Stops the game once a triangle is found in the board
 
                 Note: takes an optional parameter 'board' to start the game
@@ -166,21 +173,43 @@ class HexGame:
         print("Starting game:\n")
         
         current_node = self.root
+        
+        # Handle start
+        if self._starter == 1:
+            # AI starts -- make an arbitrary opening move
+            current_node = random.choice(current_node.get_neighbors(1))
+            self._turn = 2
+        else:
+            # Player starts
+            self._turn = 2
+
+
 
         # Continue playing until game is over
         while True:
             print(current_node)
 
             # Player's turn
-            if self._turn == 1:
+            if self._turn == 2:
+                print("Your turn.")
                 current_node = self.handle_user_move(current_node, self._turn)
             # AI's turn
             else:
+                print("AI's turn.\nThe AI is thinking to pick a move...")
+                best_value = -inf
+                best_move = current_node
                 neighbors = current_node.get_neighbors(self._turn)
-                for node in neighbors:
-                    node.score = alpha_beta(node, turn=self._turn, alpha=-inf, beta=inf)
 
-                current_node = max(neighbors, key=lambda elem: elem.score)
+                for neighbor_node in neighbors:
+                    neighbor_node.score = alpha_beta(neighbor_node, turn=self._turn, alpha=-inf, beta=inf, depth=0)
+
+                    if neighbor_node.score > best_value:
+                        best_value = neighbor_node.score
+                        best_move = neighbor_node
+                #end-for
+
+                current_node = best_move
+            #end-if-else
 
             # Check if the board has a triangle
             res,tri_loc = current_node.check_for_triangle() 
@@ -191,8 +220,11 @@ class HexGame:
                 continue
             # Triangle exists -- Game over
             else:
+                print(current_node)
+                # 1 -- Solid triangle found
                 if res == 1:
                     print("Congratulations, you WIN !!!")
+                # 2 -- Dashed triangle found
                 elif res == 2:
                     print("Computer WINS.")
                 print("{} triangle found at {} {} {}".format("Solid" if res == 1 else "Dashed", tri_loc[0], tri_loc[1], tri_loc[2]))
@@ -200,9 +232,6 @@ class HexGame:
                 break
             #end-if-else
         #end-while True
-
-        
-        print(self.root)
     #end-play_game
 
     def handle_user_move(self, node, turn):
@@ -228,7 +257,7 @@ class HexGame:
                 print("Sorry, the entered input is not valid. Try again.")
                 continue
             else:
-                print("yaay. that works")
+                # print("yaay. that works")
                 break
 
         return node
@@ -251,8 +280,8 @@ def alpha_beta(node, turn=1, alpha=-inf, beta=inf, depth=0):
             Note: by default, calculates the score for turn=1 (i.e. max)
     '''
     
-    print("------------------------alpha_beta with depth={}".format(depth))
-    print(node)
+    # print("------------------------alpha_beta with depth={}".format(depth))
+    # print(node)
 
 
     # Check if the current node has a triangle
@@ -263,8 +292,8 @@ def alpha_beta(node, turn=1, alpha=-inf, beta=inf, depth=0):
         Return -1 if a dashed triangle exists
     '''
     if has_triangle:
-        print("TEST-TERMINAL-REACHED: current node")
-        print(tri_loc)
+        # print("TEST-TERMINAL-REACHED: current node")
+        # print(tri_loc)
         # input("Press enter to continue")
         return -1 if has_triangle == 1 else 1
 
@@ -282,7 +311,7 @@ def alpha_beta(node, turn=1, alpha=-inf, beta=inf, depth=0):
             alpha = max(best_val, alpha)
 
             if beta <= alpha:
-                print("beta cutoff: {} {} at depth {}".format(alpha, beta,depth))
+                # print("beta cutoff: {} {} at depth {}".format(alpha, beta,depth))
                 break       # Perform Beta cut-off
         return best_val
     
@@ -297,7 +326,7 @@ def alpha_beta(node, turn=1, alpha=-inf, beta=inf, depth=0):
             beta = min(best_val, beta)
 
             if beta <= alpha:
-                print("alpha cutoff: {} {} at depth {}".format(alpha, beta,depth))
+                # print("alpha cutoff: {} {} at depth {}".format(alpha, beta,depth))
                 break       # Perorm Alpha cut-off
 
         return best_val
@@ -307,15 +336,13 @@ def alpha_beta(node, turn=1, alpha=-inf, beta=inf, depth=0):
 #end-alpha_beta
 
         
+
+# Driver method
 def main():
-    starter = int(input("Who should start the game? Enter player number: (1 for AI, 2 for Player)"))
+    starter = int(input("Who should start the game?\nEnter player number (1 for AI, 2 for Player): "))
 
     # Initialize board to empty (i.e. no lines)
     board = [[0,0,0,0,0,0] for row in range(6)]
-
-    # test_node = HexNode(board)
-    # test_node.play_game()
-    # print(test_node)
 
     # Create the HexGame
     hex_game = HexGame(starter, board)
@@ -356,11 +383,11 @@ def test():
         # ]
 
 
-    print("------------------Starting alpha_beta")
-    test_node = HexNode(board)
-    # test_node.check_for_triangle()
-    alpha_beta(test_node, 1, -inf, inf, 0)
-    print(test_node)
+    # print("------------------Starting alpha_beta")
+    # test_node = HexNode(board)
+    # # test_node.check_for_triangle()
+    # alpha_beta(test_node, 1, -inf, inf, 0)
+    # print(test_node)
 
 
 
@@ -376,5 +403,5 @@ def test():
 
 
 # Invoke driver
-# main()
-test()
+main()
+# test()

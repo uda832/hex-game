@@ -18,7 +18,14 @@
             * [X] 012, 123, 345
             * [X] 024, 135
             * [X] 015, 045, 245
-    * [ ] implement minimax
+    * [X] implement minimax
+    # [X] Create a case (board/config) to test the minimax algo
+
+
+    # [X] Add header (title, desc, name etc.)
+    # [ ] Finish interactive playing logic
+        # [ ] Test the change turn feature
+    # [ ] Create README.md
+    # [ ] Cleanup comments
     
-    # [ ] Create a case (board/config) to test the minimax algo
     
